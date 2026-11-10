@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Dev - Creador de Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-amber-500 text-slate-900 p-2 rounded-lg font-bold flex items-center justify-center w-10 h-10 shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-wide">POS Restaurant <span class="text-xs bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded border border-amber-500/30">DEV MODE</span></h1>
+                <p class="text-xs text-slate-400">Terminal de Ingreso de Pedidos</p>
+            </div>
+        </div>
+        <nav class="flex items-center space-x-3">
+            <a href="/dev/pedidos/crear" class="bg-amber-500 text-slate-900 font-semibold text-sm px-4 py-2 rounded-lg shadow flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle"></i> Nuevo Pedido
+            </a>
+            <a href="/dev/pedidos/monitor" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm px-4 py-2 rounded-lg transition flex items-center gap-2 border border-slate-600">
+                <i class="fa-solid fa-tv"></i> Muro Cocina & Admin
+            </a>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left 2 Cols: Formulario de Pedido y Selección de Platos -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Card 1: Tipo de Pedido y Ubicación -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
+                <h2 class="text-base font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-400"></i> 1. Tipo de Pedido y Ubicación
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <!-- Selector SALON -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoPedido" value="SALON" checked class="peer sr-only" onchange="toggleTipoPedido()">
+                        <div class="p-4 rounded-xl border-2 border-slate-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-950/20 bg-slate-900/40 hover:bg-slate-700/30 transition flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-chair"></i>
+                            </div>
+                            <div>
+                                <span class="font-bold text-white block">SALÓN</span>
+                                <span class="text-xs text-slate-400">Consumo en mesa</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Selector LLEVAR -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoPedido" value="LLEVAR" class="peer sr-only" onchange="toggleTipoPedido()">
+                        <div class="p-4 rounded-xl border-2 border-slate-700 peer-checked:border-blue-500 peer-checked:bg-blue-950/20 bg-slate-900/40 hover:bg-slate-700/30 transition flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-bag-shopping"></i>
+                            </div>
+                            <div>
+                                <span class="font-bold text-white block">PARA LLEVAR</span>
+                                <span class="text-xs text-slate-400">Empaque y despacho</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Mesa (Obligatorio si es SALON) -->
+                    <div id="mesaContainer">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Mesa asignada <span class="text-red-400">*</span></label>
+                        <select id="selectMesa" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                            <option value="">Cargando mesas...</option>
+                        </select>
+                    </div>
+
+                    <!-- Cliente (Opcional) -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Cliente (Opcional)</label>
+                        <select id="selectCliente" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                            <option value="">Consumidor Final (Sin asignar)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Observaciones Generales</label>
+                    <input type="text" id="observaciones" placeholder="Ej: Cliente alérgico a los mariscos, cubiertos extra..."
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 placeholder-slate-500">
+                </div>
+            </div>
+
+            <!-- Card 2: Catálogo de Platos -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-bowl-food text-amber-400"></i> 2. Selección de Platos
+                    </h2>
+                    <!-- Category Tabs / Search -->
+                    <input type="text" id="buscarPlato" oninput="filtrarPlatos()" placeholder="Buscar plato..."
+                           class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-full sm:w-56">
+                </div>
+
+                <!-- Grid de Platos -->
+                <div id="platosGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto pr-1">
+                    <p class="text-sm text-slate-400">Cargando catálogo de platos...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right 1 Col: Resumen de la Comanda y Envío -->
+        <div class="space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg flex flex-col h-full sticky top-24">
+                <h2 class="text-base font-semibold text-slate-200 pb-3 border-b border-slate-700 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-receipt text-amber-400"></i> Comanda a Enviar</span>
+                    <span id="badgeTipo" class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold border border-emerald-500/30">SALÓN</span>
+                </h2>
+
+                <!-- Lista de Ítems en la comanda -->
+                <div id="itemsComanda" class="flex-1 my-4 space-y-3 overflow-y-auto max-h-[380px] pr-1">
+                    <div class="text-center py-10 text-slate-500 text-sm">
+                        <i class="fa-solid fa-cart-shopping text-3xl mb-2 text-slate-600 block"></i>
+                        No has seleccionado ningún plato aún.
+                    </div>
+                </div>
+
+                <!-- Totales y Botón Enviar -->
+                <div class="pt-4 border-t border-slate-700 space-y-3">
+                    <div class="flex justify-between items-center text-sm text-slate-400">
+                        <span>Total de ítems:</span>
+                        <span id="totalItems" class="font-bold text-white">0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-base text-slate-200">
+                        <span class="font-semibold">Subtotal estimado:</span>
+                        <span id="subtotalComanda" class="font-bold text-emerald-400 text-xl">$0.00</span>
+                    </div>
+
+                    <button id="btnEnviar" onclick="enviarPedido()" disabled
+                            class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Pedido a Cocina
+                    </button>
+                    <p class="text-center text-xs text-slate-500 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-bolt text-amber-400"></i> Se transmitirá instantáneamente por WebSocket
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal o Alerta de Éxito -->
+    <div id="toastSuccess" class="fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-32 transition duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-2xl"></i>
+        <div>
+            <h4 class="font-bold text-sm">¡Pedido enviado con éxito!</h4>
+            <p id="toastMessage" class="text-xs text-emerald-100">La comanda viaja en tiempo real hacia cocina.</p>
+        </div>
+    </div>
+
+    <script>
+        let contextData = { mesas: [], platos: [], clientes: [] };
+        let comanda = []; // { platoId, nombre, precioUnitario, cantidad, notasPreparacion }
+
+        async function init() {
+            try {
+                const res = await fetch('/dev/api/context');
+                contextData = await res.json();
+
+                renderMesas();
+                renderClientes();
+                renderPlatos();
+            } catch (err) {
+                console.error("Error al cargar contexto:", err);
+            }
+        }
+
+        function renderMesas() {
+            const select = document.getElementById('selectMesa');
+            select.innerHTML = '<option value="">-- Seleccione Mesa --</option>';
+            contextData.mesas.forEach(m => {
+                const badge = m.estado === 'LIBRE' ? ' (Libre)' : ' (Ocupada)';
+                select.innerHTML += `<option value="${m.id}">Mesa #${m.numeroMesa} - Cap: ${m.capacidad} ${m.ubicacion ? '(' + m.ubicacion + ')' : ''} ${badge}</option>`;
+            });
+        }
+
+        function renderClientes() {
+            const select = document.getElementById('selectCliente');
+            select.innerHTML = '<option value="">Consumidor Final (Sin asignar)</option>';
+            contextData.clientes.forEach(c => {
+                select.innerHTML += `<option value="${c.uuid}">${c.razonSocial} (${c.identificacion})</option>`;
+            });
+        }
+
+        function renderPlatos(filtro = '') {
+            const grid = document.getElementById('platosGrid');
+            const term = filtro.toLowerCase().trim();
+
+            const filtrados = contextData.platos.filter(p => 
+                p.nombre.toLowerCase().includes(term) || 
+                (p.nombreCategoria && p.nombreCategoria.toLowerCase().includes(term))
+            );
+
+            if (filtrados.length === 0) {
+                grid.innerHTML = '<p class="text-sm text-slate-500 col-span-2 py-4">No se encontraron platos disponibles.</p>';
+                return;
+            }
+
+            grid.innerHTML = filtrados.map(p => `
+                <div class="bg-slate-900/60 border border-slate-700/70 hover:border-amber-500/50 p-3.5 rounded-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                                ${p.nombreCategoria || 'General'}
+                            </span>
+                            <span class="text-emerald-400 font-bold text-sm">$${parseFloat(p.precioUnitario).toFixed(2)}</span>
+                        </div>
+                        <h4 class="text-white font-semibold text-sm mt-1.5">${p.nombre}</h4>
+                        ${p.descripcion ? `<p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${p.descripcion}</p>` : ''}
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <button type="button" onclick="agregarAlPedido(${p.id})"
+                                class="w-full bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 text-xs font-bold py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-xs"></i> Agregar a Comanda
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filtrarPlatos() {
+            const query = document.getElementById('buscarPlato').value;
+            renderPlatos(query);
+        }
+
+        function toggleTipoPedido() {
+            const tipo = document.querySelector('input[name="tipoPedido"]:checked').value;
+            const badge = document.getElementById('badgeTipo');
+            if (tipo === 'SALON') {
+                badge.innerText = 'SALÓN';
+                badge.className = 'text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold border border-emerald-500/30';
+                document.getElementById('mesaContainer').style.display = 'block';
+            } else {
+                badge.innerText = 'PARA LLEVAR';
+                badge.className = 'text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold border border-blue-500/30';
+            }
+        }
+
+        function agregarAlPedido(platoId) {
+            const plato = contextData.platos.find(p => p.id === platoId);
+            if (!plato) return;
+
+            const existente = comanda.find(item => item.platoId === platoId);
+            if (existente) {
+                existente.cantidad += 1;
+            } else {
+                comanda.push({
+                    platoId: plato.id,
+                    nombre: plato.nombre,
+                    precioUnitario: parseFloat(plato.precioUnitario),
+                    cantidad: 1,
+                    notasPreparacion: ''
+                });
+            }
+            renderComanda();
+        }
+
+        function cambiarCantidad(platoId, delta) {
+            const item = comanda.find(i => i.platoId === platoId);
+            if (!item) return;
+
+            item.cantidad += delta;
+            if (item.cantidad <= 0) {
+                comanda = comanda.filter(i => i.platoId !== platoId);
+            }
+            renderComanda();
+        }
+
+        function actualizarNotas(platoId, notas) {
+            const item = comanda.find(i => i.platoId === platoId);
+            if (item) item.notasPreparacion = notas;
+        }
+
+        function renderComanda() {
+            const container = document.getElementById('itemsComanda');
+            const btnEnviar = document.getElementById('btnEnviar');
+
+            if (comanda.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-500 text-sm">
+                        <i class="fa-solid fa-cart-shopping text-3xl mb-2 text-slate-600 block"></i>
+                        No has seleccionado ningún plato aún.
+                    </div>`;
+                document.getElementById('totalItems').innerText = '0';
+                document.getElementById('subtotalComanda').innerText = '$0.00';
+                btnEnviar.disabled = true;
+                return;
+            }
+
+            let totalItems = 0;
+            let subtotal = 0;
+
+            container.innerHTML = comanda.map(item => {
+                const sub = item.cantidad * item.precioUnitario;
+                totalItems += item.cantidad;
+                subtotal += sub;
+
+                return `
+                    <div class="bg-slate-900/80 border border-slate-700/70 p-3 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-bold text-white">${item.nombre}</span>
+                            <span class="text-emerald-400 font-semibold">$${sub.toFixed(2)}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2 bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+                                <button type="button" onclick="cambiarCantidad(${item.platoId}, -1)" class="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:bg-slate-700">
+                                    <i class="fa-solid fa-minus text-xs"></i>
+                                </button>
+                                <span class="text-xs font-bold w-6 text-center text-white">${item.cantidad}</span>
+                                <button type="button" onclick="cambiarCantidad(${item.platoId}, 1)" class="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:bg-slate-700">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                            <span class="text-xs text-slate-400">@ $${item.precioUnitario.toFixed(2)}</span>
+                        </div>
+                        <input type="text" value="${item.notasPreparacion}" oninput="actualizarNotas(${item.platoId}, this.value)"
+                               placeholder="Notas (ej. sin cebolla, término medio...)"
+                               class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500">
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('totalItems').innerText = totalItems;
+            document.getElementById('subtotalComanda').innerText = `$${subtotal.toFixed(2)}`;
+            btnEnviar.disabled = false;
+        }
+
+        async function enviarPedido() {
+            const tipo = document.querySelector('input[name="tipoPedido"]:checked').value;
+            const mesaId = document.getElementById('selectMesa').value;
+            const clienteId = document.getElementById('selectCliente').value;
+            const obs = document.getElementById('observaciones').value;
+
+            if (tipo === 'SALON' && !mesaId) {
+                alert('Por favor selecciona una mesa para el pedido de salón.');
+                return;
+            }
+
+            const payload = {
+                idMesa: mesaId ? parseInt(mesaId) : (contextData.mesas[0] ? contextData.mesas[0].id : 1),
+                idCliente: clienteId || null,
+                tipo: tipo,
+                observaciones: obs,
+                detalles: comanda.map(i => ({
+                    idPlato: i.platoId,
+                    cantidad: i.cantidad,
+                    notasPreparacion: i.notasPreparacion
+                }))
+            };
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                const res = await fetch('/dev/api/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert('Error al crear pedido: ' + (err.error || JSON.stringify(err)));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Pedido a Cocina';
+                    return;
+                }
+
+                const nuevoPedido = await res.json();
+                mostrarToast(`Pedido #${nuevoPedido.id} creado (${nuevoPedido.tipo}) y transmitido a Cocina.`);
+
+                // Reset comanda
+                comanda = [];
+                document.getElementById('observaciones').value = '';
+                renderComanda();
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Pedido a Cocina';
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Pedido a Cocina';
+            }
+        }
+
+        function mostrarToast(msg) {
+            const toast = document.getElementById('toastSuccess');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('translate-y-32');
+            setTimeout(() => {
+                toast.classList.add('translate-y-32');
+            }, 4000);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Dev - Monitor Cocina y Administrador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SockJS and STOMP via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <style>
+        @keyframes highlightPulse {
+            0% { transform: scale(1.02); box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        .order-new {
+            animation: highlightPulse 1.2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-6 py-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center space-x-3">
+            <div class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl font-bold flex items-center justify-center w-11 h-11 shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-bell-concierge text-xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-bold text-white tracking-wide">Muro de Pedidos en Vivo</h1>
+                    <span class="text-xs bg-emerald-500/20 text-emerald-400 font-semibold px-2 py-0.5 rounded border border-emerald-500/30">COCINA & ADMIN</span>
+                </div>
+                <p class="text-xs text-slate-400">Recepción instantánea de comandas por orden de llegada (WebSocket)</p>
+            </div>
+        </div>
+
+        <!-- Connection and Filter Toolbar -->
+        <div class="flex items-center flex-wrap gap-3">
+            <!-- Connection Status Badge -->
+            <div id="wsStatus" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-semibold text-slate-300 shadow">
+                <span id="wsIndicator" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                <span id="wsText">Conectando WebSocket...</span>
+            </div>
+
+            <!-- Filtros por Tipo de Pedido -->
+            <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex items-center gap-1">
+                <button onclick="cambiarFiltro('TODOS')" id="btnFiltroTODOS" class="px-3 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow">
+                    TODOS (<span id="countTodos">0</span>)
+                </button>
+                <button onclick="cambiarFiltro('SALON')" id="btnFiltroSALON" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">
+                    SALÓN (<span id="countSalon">0</span>)
+                </button>
+                <button onclick="cambiarFiltro('LLEVAR')" id="btnFiltroLLEVAR" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">
+                    LLEVAR (<span id="countLlevar">0</span>)
+                </button>
+            </div>
+
+            <!-- Botón Ir a Creador de Pedidos -->
+            <a href="/dev/pedidos/crear" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2">
+                <i class="fa-solid fa-plus text-amber-400"></i> Nuevo Pedido
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Board -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6">
+
+        <!-- Banner de estadísticas rápidas -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">En Espera / Abiertos</span>
+                    <h3 id="statAbiertos" class="text-2xl font-black text-amber-400">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">En Preparación</span>
+                    <h3 id="statPreparacion" class="text-2xl font-black text-blue-400">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-fire-burner"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Listos / Servidos</span>
+                    <h3 id="statServidos" class="text-2xl font-black text-emerald-400">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Total Activos</span>
+                    <h3 id="statTotal" class="text-2xl font-black text-white">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Muro de Comandas en Grid -->
+        <div id="muroPedidos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="col-span-full text-center py-16 text-slate-600">
+                <i class="fa-solid fa-spinner fa-spin text-4xl mb-3 block"></i>
+                Cargando comanda en vivo...
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating Audio Alert Indicator -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button onclick="toggleAudio()" id="btnAudio" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-2">
+            <i class="fa-solid fa-volume-high text-emerald-400" id="iconAudio"></i>
+            <span id="textAudio">Sonido activado</span>
+        </button>
+    </div>
+
+    <script>
+        let pedidos = [];
+        let filtroTipo = 'TODOS';
+        let audioHabilitado = true;
+        let stompClient = null;
+
+        // Reproduce un sonido de campana sintético (Web Audio API)
+        function reproducirAlertaSonora() {
+            if (!audioHabilitado) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime); // La5
+                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3); // La4
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                console.warn('Audio no permitido antes de interacción', e);
+            }
+        }
+
+        function toggleAudio() {
+            audioHabilitado = !audioHabilitado;
+            const icon = document.getElementById('iconAudio');
+            const text = document.getElementById('textAudio');
+            if (audioHabilitado) {
+                icon.className = 'fa-solid fa-volume-high text-emerald-400';
+                text.innerText = 'Sonido activado';
+                reproducirAlertaSonora();
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                text.innerText = 'Sonido silenciado';
+            }
+        }
+
+        async function cargarPedidosIniciales() {
+            try {
+                const res = await fetch('/dev/api/pedidos/activos');
+                pedidos = await res.json();
+                renderMuro();
+            } catch (err) {
+                console.error("Error al cargar pedidos iniciales:", err);
+            }
+        }
+
+        function conectarWebSocket() {
+            const socket = new SockJS('/ws-pos');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null; // desactiva logs excesivos en consola
+
+            stompClient.connect({}, function (frame) {
+                actualizarEstadoConexion(true);
+
+                // Suscripción a los pedidos en vivo
+                stompClient.subscribe('/topic/pedidos', function (message) {
+                    const pedidoRecibido = JSON.parse(message.body);
+                    procesarPedidoRecibido(pedidoRecibido);
+                });
+
+            }, function (error) {
+                actualizarEstadoConexion(false);
+                console.warn('Reconectando WebSocket en 4s...', error);
+                setTimeout(conectarWebSocket, 4000);
+            });
+        }
+
+        function actualizarEstadoConexion(conectado) {
+            const indicator = document.getElementById('wsIndicator');
+            const text = document.getElementById('wsText');
+            if (conectado) {
+                indicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+                text.innerText = 'WebSocket en Vivo';
+            } else {
+                indicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse';
+                text.innerText = 'Desconectado';
+            }
+        }
+
+        function procesarPedidoRecibido(pedido) {
+            const index = pedidos.findIndex(p => p.id === pedido.id);
+
+            if (index !== -1) {
+                // Actualización de pedido existente
+                if (pedido.estado === 'FACTURADO' || pedido.estado === 'ANULADO') {
+                    // Si ya se cerró, lo retiramos del muro activo
+                    pedidos.splice(index, 1);
+                } else {
+                    pedidos[index] = pedido;
+                }
+            } else {
+                // Nuevo pedido que llega
+                if (pedido.estado !== 'FACTURADO' && pedido.estado !== 'ANULADO') {
+                    pedidos.push(pedido);
+                    // Suena la campana de nuevo pedido
+                    reproducirAlertaSonora();
+                }
+            }
+
+            renderMuro(pedido.id);
+        }
+
+        function cambiarFiltro(tipo) {
+            filtroTipo = tipo;
+            ['TODOS', 'SALON', 'LLEVAR'].forEach(t => {
+                const btn = document.getElementById('btnFiltro' + t);
+                if (t === tipo) {
+                    btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+                }
+            });
+            renderMuro();
+        }
+
+        function renderMuro(idDestacado = null) {
+            actualizarContadores();
+            const container = document.getElementById('muroPedidos');
+
+            const listaFiltrada = pedidos.filter(p => {
+                if (filtroTipo === 'TODOS') return true;
+                return p.tipo === filtroTipo;
+            });
+
+            if (listaFiltrada.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-20 text-slate-500">
+                        <i class="fa-solid fa-mug-saucer text-5xl mb-3 text-slate-700 block"></i>
+                        <h3 class="text-base font-bold text-slate-400">No hay comandas activas</h3>
+                        <p class="text-xs text-slate-500 mt-1">Crea un pedido desde la terminal para verlo llegar en vivo.</p>
+                        <a href="/dev/pedidos/crear" class="inline-block mt-4 bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-lg">
+                            + Crear Pedido de Prueba
+                        </a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = listaFiltrada.map(p => {
+                const esNuevo = p.id === idDestacado;
+                const esSalon = p.tipo === 'SALON';
+                const badgeTipo = esSalon
+                    ? `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-lg font-black flex items-center gap-1.5"><i class="fa-solid fa-chair"></i> MESA #${p.numeroMesa}</span>`
+                    : `<span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs px-2.5 py-1 rounded-lg font-black flex items-center gap-1.5"><i class="fa-solid fa-bag-shopping"></i> PARA LLEVAR</span>`;
+
+                const badgeEstado = getBadgeEstado(p.estado);
+                const minutos = calcularMinutos(p.fechaApertura || p.createdAt);
+
+                return `
+                    <div id="pedido-card-${p.id}" class="bg-slate-900 border ${esNuevo ? 'border-amber-400 order-new' : 'border-slate-800'} rounded-2xl p-5 shadow-xl flex flex-col justify-between transition hover:border-slate-700">
+                        <div>
+                            <!-- Header de la comanda -->
+                            <div class="flex items-start justify-between gap-2 pb-3 border-b border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-lg font-extrabold text-white">#${p.id}</h3>
+                                        ${badgeTipo}
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        <i class="fa-solid fa-user-tie text-slate-500"></i> ${p.nombreUsuario || 'Mesero'} 
+                                        ${p.razonSocialCliente ? `• <i class="fa-regular fa-user text-slate-500"></i> ${p.razonSocialCliente}` : ''}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    ${badgeEstado}
+                                    <span class="text-[11px] text-slate-500 block mt-1"><i class="fa-regular fa-clock"></i> hace ${minutos} min</span>
+                                </div>
+                            </div>
+
+                            <!-- Observaciones si existen -->
+                            ${p.observaciones ? `
+                                <div class="my-3 bg-amber-500/10 border-l-2 border-amber-400 p-2.5 rounded-r text-xs text-amber-200">
+                                    <strong>Nota:</strong> ${p.observaciones}
+                                </div>
+                            ` : ''}
+
+                            <!-- Lista de platos -->
+                            <div class="my-4 space-y-2.5">
+                                ${p.detalles.map(d => `
+                                    <div class="flex items-start justify-between text-sm py-1 border-b border-slate-800/60 last:border-0">
+                                        <div class="flex items-start gap-2">
+                                            <span class="w-6 h-6 rounded-md bg-slate-800 text-amber-400 font-extrabold flex items-center justify-center text-xs shrink-0 border border-slate-700">
+                                                ${d.cantidad}x
+                                            </span>
+                                            <div>
+                                                <span class="font-bold text-slate-100">${d.nombrePlato}</span>
+                                                ${d.notasPreparacion ? `<span class="block text-xs text-amber-300/80 italic font-medium"><i class="fa-solid fa-fire-burner text-[10px]"></i> ${d.notasPreparacion}</span>` : ''}
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-slate-400 font-mono">$${parseFloat(d.subtotal).toFixed(2)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Footer: Botones de Acción para Cambiar Estado -->
+                        <div class="pt-3 border-t border-slate-800 flex flex-wrap gap-1.5 items-center justify-between">
+                            <span class="text-xs text-slate-500 font-semibold">Cambiar Estado:</span>
+                            <div class="flex items-center gap-1.5">
+                                ${p.estado === 'ABIERTO' ? `
+                                    <button onclick="cambiarEstado(${p.id}, 'EN_PREPARACION')" 
+                                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+                                        <i class="fa-solid fa-fire"></i> Preparar
+                                    </button>
+                                ` : ''}
+
+                                ${p.estado === 'EN_PREPARACION' ? `
+                                    <button onclick="cambiarEstado(${p.id}, 'SERVIDO')" 
+                                            class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+                                        <i class="fa-solid fa-bell"></i> Servido
+                                    </button>
+                                ` : ''}
+
+                                ${p.estado === 'SERVIDO' ? `
+                                    <button onclick="cambiarEstado(${p.id}, 'FACTURADO')" 
+                                            class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+                                        <i class="fa-solid fa-receipt"></i> Facturar
+                                    </button>
+                                ` : ''}
+
+                                <button onclick="cambiarEstado(${p.id}, 'ANULADO')" title="Anular pedido"
+                                        class="bg-slate-800 hover:bg-rose-950 hover:text-rose-400 text-slate-400 text-xs px-2 py-1.5 rounded-lg transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getBadgeEstado(estado) {
+            switch (estado) {
+                case 'ABIERTO':
+                    return '<span class="text-xs bg-amber-500/20 text-amber-400 font-bold px-2 py-0.5 rounded border border-amber-500/30">ABIERTO</span>';
+                case 'EN_PREPARACION':
+                    return '<span class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30 animate-pulse">EN PREPARACIÓN</span>';
+                case 'SERVIDO':
+                    return '<span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">SERVIDO</span>';
+                case 'FACTURADO':
+                    return '<span class="text-xs bg-purple-500/20 text-purple-400 font-bold px-2 py-0.5 rounded border border-purple-500/30">FACTURADO</span>';
+                default:
+                    return `<span class="text-xs bg-slate-700 text-slate-300 font-bold px-2 py-0.5 rounded">${estado}</span>`;
+            }
+        }
+
+        function calcularMinutos(fechaStr) {
+            if (!fechaStr) return '0';
+            const diff = Math.floor((new Date() - new Date(fechaStr)) / 60000);
+            return diff >= 0 ? diff : 0;
+        }
+
+        function actualizarContadores() {
+            const todos = pedidos.length;
+            const salon = pedidos.filter(p => p.tipo === 'SALON').length;
+            const llevar = pedidos.filter(p => p.tipo === 'LLEVAR').length;
+
+            document.getElementById('countTodos').innerText = todos;
+            document.getElementById('countSalon').innerText = salon;
+            document.getElementById('countLlevar').innerText = llevar;
+
+            document.getElementById('statAbiertos').innerText = pedidos.filter(p => p.estado === 'ABIERTO').length;
+            document.getElementById('statPreparacion').innerText = pedidos.filter(p => p.estado === 'EN_PREPARACION').length;
+            document.getElementById('statServidos').innerText = pedidos.filter(p => p.estado === 'SERVIDO').length;
+            document.getElementById('statTotal').innerText = todos;
+        }
+
+        async function cambiarEstado(pedidoId, nuevoEstado) {
+            try {
+                const res = await fetch(`/dev/api/pedidos/${pedidoId}/estado?estado=${nuevoEstado}`, {
+                    method: 'PATCH'
+                });
+                if (!res.ok) {
+                    alert('Error al actualizar estado del pedido');
+                }
+                // Nota: El WebSocket actualizará la pantalla automáticamente para todos
+            } catch (err) {
+                alert('Error de conexión: ' + err.message);
+            }
+        }
+
+        window.onload = function() {
+            cargarPedidosIniciales();
+            conectarWebSocket();
+            // Actualizar cronómetros cada minuto
+            setInterval(renderMuro, 60000);
+        };
+    </script>
+</body>
+</html>

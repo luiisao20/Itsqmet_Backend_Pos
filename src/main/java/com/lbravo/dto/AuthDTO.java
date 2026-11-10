@@ -1,0 +1,41 @@
+package com.lbravo.dto;
+
+import com.lbravo.types.RolUsuario;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+public class AuthDTO {
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class LoginRequest {
+        @NotBlank(message = "El email no puede estar vacío")
+        @Email(message = "El formato de email no es válido")
+        private String email;
+
+        @NotBlank(message = "La contraseña no puede estar vacía")
+        @Size(min = 4, message = "La contraseña debe tener al menos 4 caracteres")
+        private String password;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class AuthResponse {
+        private String uuid;
+        private String nombre;
+        private String apellido;
+        private String email;
+        private RolUsuario rol;
+        private Boolean activo;
+        private String message;
+    }
+}
