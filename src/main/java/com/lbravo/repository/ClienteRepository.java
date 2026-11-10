@@ -19,6 +19,13 @@ public interface ClienteRepository extends JpaRepository<Cliente, String> {
 
     boolean existsByIdentificacion(String identificacion);
 
+    Optional<Cliente> findByEmail(String email);
+
+    boolean existsByEmail(String email);
+
+    @Query("SELECT c FROM Cliente c WHERE LOWER(c.email) = LOWER(:login) OR c.identificacion = :login")
+    Optional<Cliente> findByEmailOrIdentificacion(@Param("login") String login);
+
     Page<Cliente> findByTipoIdentificacion(TipoIdentificacion tipoIdentificacion, Pageable pageable);
 
     @Query("SELECT c FROM Cliente c WHERE "

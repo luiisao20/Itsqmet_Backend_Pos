@@ -36,6 +36,11 @@ public class FacturaController {
         return ResponseEntity.ok(facturaService.getAll(pageable));
     }
 
+    @GetMapping("/mis-facturas")
+    public ResponseEntity<Page<FacturaDTO.Response>> getMisFacturas(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(facturaService.getMisFacturas(pageable));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<FacturaDTO.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(facturaService.getById(id));

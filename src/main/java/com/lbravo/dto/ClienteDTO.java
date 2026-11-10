@@ -39,6 +39,10 @@ public class ClienteDTO {
 
         @Email(message = "El formato de email no es válido")
         private String email;
+
+        private String password;
+
+        private Boolean activo;
     }
 
     @Data
@@ -53,6 +57,7 @@ public class ClienteDTO {
         private String direccion;
         private String telefono;
         private String email;
+        private Boolean activo;
         private OffsetDateTime createdAt;
     }
 }

@@ -61,6 +61,16 @@ public class PedidoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.create(req));
     }
 
+    @PostMapping("/cliente")
+    public ResponseEntity<PedidoDTO.Response> createPedidoCliente(@Valid @RequestBody PedidoDTO.ClienteRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.createPedidoCliente(req));
+    }
+
+    @GetMapping("/mis-pedidos")
+    public ResponseEntity<Page<PedidoDTO.Response>> getMisPedidos(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(pedidoService.getMisPedidos(pageable));
+    }
+
     @PatchMapping("/{id}/estado")
     public ResponseEntity<PedidoDTO.Response> updateEstado(
             @PathVariable Long id,

@@ -21,13 +21,24 @@ public class PedidoDTO {
     @NoArgsConstructor
     @Builder
     public static class Request {
-        @NotNull(message = "El id de la mesa es obligatorio")
         private Long idMesa;
 
         private String idCliente;
 
         private TipoPedido tipo;
 
+        private String observaciones;
+
+        @NotEmpty(message = "El pedido debe contener al menos un detalle")
+        @Valid
+        private List<DetallePedidoDTO.Request> detalles;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ClienteRequest {
         private String observaciones;
 
         @NotEmpty(message = "El pedido debe contener al menos un detalle")

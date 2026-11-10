@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lbravo.types.TipoIdentificacion;
 
 import jakarta.persistence.Column;
@@ -27,30 +28,38 @@ import lombok.NoArgsConstructor;
 @Table(name = "clientes")
 public class Cliente {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String uuid;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private String uuid;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private TipoIdentificacion tipoIdentificacion;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 30)
+  private TipoIdentificacion tipoIdentificacion;
 
-    @Column(nullable = false, unique = true, length = 30)
-    private String identificacion;
+  @Column(nullable = false, unique = true, length = 30)
+  private String identificacion;
 
-    @Column(nullable = false, length = 200)
-    private String razonSocial;
+  @Column(nullable = false, length = 200)
+  private String razonSocial;
 
-    @Column(length = 255)
-    private String direccion;
+  @Column(length = 255)
+  private String direccion;
 
-    @Column(length = 30)
-    private String telefono;
+  @Column(length = 30)
+  private String telefono;
 
-    @Column(length = 150)
-    private String email;
+  @Column(length = 150)
+  private String email;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
-    private OffsetDateTime createdAt;
+  @JsonIgnore
+  @Column(columnDefinition = "text")
+  private String password;
+
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean activo = true;
+
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
+  private OffsetDateTime createdAt;
 }

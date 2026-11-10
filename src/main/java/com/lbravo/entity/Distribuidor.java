@@ -23,32 +23,32 @@ import lombok.NoArgsConstructor;
 @Table(name = "distribuidores")
 public class Distribuidor {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
-    private String ruc;
+  @Column(nullable = false, unique = true, length = 30)
+  private String ruc;
 
-    @Column(nullable = false, length = 200)
-    private String razonSocial;
+  @Column(nullable = false, length = 200)
+  private String razonSocial;
 
-    @Column(length = 150)
-    private String nombreContacto;
+  @Column(length = 150)
+  private String nombreContacto;
 
-    @Column(length = 30)
-    private String telefono;
+  @Column(length = 30)
+  private String telefono;
 
-    @Column(length = 150)
-    private String email;
+  @Column(length = 150)
+  private String email;
 
-    @Column(length = 255)
-    private String direccion;
+  @Column(length = 255)
+  private String direccion;
 
-    @Column(length = 100)
-    private String categoriaProveedor;
+  @Column(length = 100)
+  private String categoriaProveedor;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
-    private OffsetDateTime createdAt;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
+  private OffsetDateTime createdAt;
 }

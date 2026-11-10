@@ -38,6 +38,8 @@ public class JwtValidator extends OncePerRequestFilter {
     // Rutas públicas que no requieren validación de JWT
     if ("/auth/login".equals(requestPath)
         || "/auth/csrf".equals(requestPath)
+        || "/auth/cliente/login".equals(requestPath)
+        || "/auth/cliente/registro".equals(requestPath)
         || requestPath.startsWith("/v3/api-docs")
         || requestPath.startsWith("/swagger-ui")
         || requestPath.startsWith("/ws-pos")

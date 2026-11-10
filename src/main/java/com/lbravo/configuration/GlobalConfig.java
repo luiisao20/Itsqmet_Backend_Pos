@@ -73,30 +73,26 @@ public class GlobalConfig {
         .authorizeHttpRequests(auth -> auth
             .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
             .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .requestMatchers("/auth/login", "/auth/csrf").permitAll()
+            .requestMatchers("/auth/login", "/auth/csrf", "/auth/cliente/login", "/auth/cliente/registro").permitAll()
             .requestMatchers("/ws-pos/**", "/dev/**").permitAll()
             .requestMatchers("/auth/logout", "/auth/me").authenticated()
 
-            // Gestión Administrativa (Solo ADMIN)
-            // .requestMatchers("/usuarios/**", "/distribuidores/**",
-            // "/compras/**").hasRole("ADMIN")
+            // Endpoints del Cliente
+            .requestMatchers("/pedidos/cliente", "/pedidos/mis-pedidos").hasRole("CLIENTE")
+            .requestMatchers("/facturas/mis-facturas").hasRole("CLIENTE")
+
+            // Catálogo (Lectura para ADMIN, MESERO, COCINA, CLIENTE)
+            .requestMatchers(HttpMethod.GET, "/platos/**", "/categorias-plato/**").hasAnyRole("ADMIN", "MESERO", "COCINA", "CLIENTE")
+            .requestMatchers(HttpMethod.GET, "/insumos/**", "/recetas/**").hasAnyRole("ADMIN", "MESERO", "COCINA")
+            .requestMatchers(HttpMethod.POST, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.PUT, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**").hasRole("ADMIN")
 
             // Operaciones de Salón y Atención (ADMIN y MESERO)
-            .requestMatchers("/mesas/**", "/pedidos/**", "/clientes/**", "/facturas/**", "/pagos/**")
-            .hasAnyRole("ADMIN", "MESERO")
+            .requestMatchers("/mesas/**", "/pedidos/**", "/clientes/**", "/facturas/**", "/pagos/**").hasAnyRole("ADMIN", "MESERO")
 
             // Cocina y Preparación de platos (ADMIN, COCINA, MESERO)
             .requestMatchers("/detalles-pedido/**").hasAnyRole("ADMIN", "COCINA", "MESERO")
-
-            // Catálogo e Insumos (Lectura para todos los roles; Modificación solo ADMIN)
-            .requestMatchers(HttpMethod.GET, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**")
-            .hasAnyRole("ADMIN", "MESERO", "COCINA")
-            .requestMatchers(HttpMethod.POST, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**")
-            .hasRole("ADMIN")
-            .requestMatchers(HttpMethod.PUT, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**")
-            .hasRole("ADMIN")
-            .requestMatchers(HttpMethod.DELETE, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**")
-            .hasRole("ADMIN")
 
             .anyRequest().permitAll())
         .addFilterBefore(jwtValidator, BasicAuthenticationFilter.class);

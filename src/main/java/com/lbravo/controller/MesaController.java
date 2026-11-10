@@ -28,50 +28,50 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class MesaController {
 
-    private final MesaService mesaService;
+  private final MesaService mesaService;
 
-    @GetMapping
-    public ResponseEntity<Page<MesaDTO.Response>> getAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(mesaService.getAll(pageable));
-    }
+  @GetMapping
+  public ResponseEntity<Page<MesaDTO.Response>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+    return ResponseEntity.ok(mesaService.getAll(pageable));
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<MesaDTO.Response> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(mesaService.getById(id));
-    }
+  @GetMapping("/{id}")
+  public ResponseEntity<MesaDTO.Response> getById(@PathVariable Long id) {
+    return ResponseEntity.ok(mesaService.getById(id));
+  }
 
-    @GetMapping("/estado/{estado}")
-    public ResponseEntity<Page<MesaDTO.Response>> getByEstado(
-            @PathVariable EstadoMesa estado,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(mesaService.getByEstado(estado, pageable));
-    }
+  @GetMapping("/estado/{estado}")
+  public ResponseEntity<Page<MesaDTO.Response>> getByEstado(
+      @PathVariable EstadoMesa estado,
+      @PageableDefault(size = 20) Pageable pageable) {
+    return ResponseEntity.ok(mesaService.getByEstado(estado, pageable));
+  }
 
-    @GetMapping("/buscar")
-    public ResponseEntity<Page<MesaDTO.Response>> searchByUbicacion(
-            @RequestParam String ubicacion,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(mesaService.searchByUbicacion(ubicacion, pageable));
-    }
+  @GetMapping("/buscar")
+  public ResponseEntity<Page<MesaDTO.Response>> searchByUbicacion(
+      @RequestParam String ubicacion,
+      @PageableDefault(size = 20) Pageable pageable) {
+    return ResponseEntity.ok(mesaService.searchByUbicacion(ubicacion, pageable));
+  }
 
-    @PostMapping
-    public ResponseEntity<MesaDTO.Response> create(@Valid @RequestBody MesaDTO.Request req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mesaService.create(req));
-    }
+  @PostMapping
+  public ResponseEntity<MesaDTO.Response> create(@Valid @RequestBody MesaDTO.Request req) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(mesaService.create(req));
+  }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<MesaDTO.Response> update(@PathVariable Long id, @Valid @RequestBody MesaDTO.Request req) {
-        return ResponseEntity.ok(mesaService.update(id, req));
-    }
+  @PutMapping("/{id}")
+  public ResponseEntity<MesaDTO.Response> update(@PathVariable Long id, @Valid @RequestBody MesaDTO.Request req) {
+    return ResponseEntity.ok(mesaService.update(id, req));
+  }
 
-    @PatchMapping("/{id}/estado")
-    public ResponseEntity<MesaDTO.Response> updateEstado(@PathVariable Long id, @RequestParam EstadoMesa estado) {
-        return ResponseEntity.ok(mesaService.updateEstado(id, estado));
-    }
+  @PatchMapping("/{id}/estado")
+  public ResponseEntity<MesaDTO.Response> updateEstado(@PathVariable Long id, @RequestParam EstadoMesa estado) {
+    return ResponseEntity.ok(mesaService.updateEstado(id, estado));
+  }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        mesaService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    mesaService.delete(id);
+    return ResponseEntity.noContent().build();
+  }
 }

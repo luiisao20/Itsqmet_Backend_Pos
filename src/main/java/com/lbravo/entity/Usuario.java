@@ -28,35 +28,35 @@ import lombok.NoArgsConstructor;
 @Table(name = "usuarios")
 public class Usuario {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String uuid;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private String uuid;
 
-    @Column(nullable = false, length = 100)
-    private String nombre;
+  @Column(nullable = false, length = 100)
+  private String nombre;
 
-    @Column(nullable = false, length = 100)
-    private String apellido;
+  @Column(nullable = false, length = 100)
+  private String apellido;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String cedula;
+  @Column(nullable = false, unique = true, length = 20)
+  private String cedula;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
+  @Column(nullable = false, unique = true, length = 150)
+  private String email;
 
-    @JsonIgnore
-    @Column(nullable = false, columnDefinition = "text")
-    private String password;
+  @JsonIgnore
+  @Column(nullable = false, columnDefinition = "text")
+  private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private RolUsuario rol;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 30)
+  private RolUsuario rol;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean activo = true;
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean activo = true;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
-    private OffsetDateTime createdAt;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
+  private OffsetDateTime createdAt;
 }

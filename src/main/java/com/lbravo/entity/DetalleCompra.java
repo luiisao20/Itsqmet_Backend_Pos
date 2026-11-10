@@ -29,29 +29,29 @@ import lombok.NoArgsConstructor;
 @Table(name = "detalles_compras")
 public class DetalleCompra {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_compra", nullable = false)
-    private CompraInsumo compra;
+  @JsonIgnore
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id_compra", nullable = false)
+  private CompraInsumo compra;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_insumo", nullable = false)
-    private Insumo insumo;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_insumo", nullable = false)
+  private Insumo insumo;
 
-    @Column(nullable = false, precision = 12, scale = 3)
-    private BigDecimal cantidad;
+  @Column(nullable = false, precision = 12, scale = 3)
+  private BigDecimal cantidad;
 
-    @Column(nullable = false, precision = 10, scale = 4)
-    private BigDecimal costoUnitario;
+  @Column(nullable = false, precision = 10, scale = 4)
+  private BigDecimal costoUnitario;
 
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal subtotal;
+  @Column(nullable = false, precision = 12, scale = 2)
+  private BigDecimal subtotal;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
-    private OffsetDateTime createdAt;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
+  private OffsetDateTime createdAt;
 }

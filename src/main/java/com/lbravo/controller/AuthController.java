@@ -42,6 +42,24 @@ public class AuthController {
     return ResponseEntity.ok(result.getAuthResponse());
   }
 
+  @PostMapping("/cliente/login")
+  public ResponseEntity<AuthDTO.AuthResponse> loginCliente(
+      @Valid @RequestBody AuthDTO.ClienteLoginRequest req,
+      HttpServletResponse response) {
+    LoginResult result = authService.loginCliente(req);
+    Helper.addJwtCookie(response, result.getJwtToken(), 86400);
+    return ResponseEntity.ok(result.getAuthResponse());
+  }
+
+  @PostMapping("/cliente/registro")
+  public ResponseEntity<AuthDTO.AuthResponse> registerCliente(
+      @Valid @RequestBody AuthDTO.ClienteRegisterRequest req,
+      HttpServletResponse response) {
+    LoginResult result = authService.registerCliente(req);
+    Helper.addJwtCookie(response, result.getJwtToken(), 86400);
+    return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(result.getAuthResponse());
+  }
+
   @PostMapping("/logout")
   public ResponseEntity<?> logout(HttpServletResponse response) {
     Helper.deleteJwtCookie(response);

@@ -32,37 +32,37 @@ import lombok.NoArgsConstructor;
 @Table(name = "detalles_pedidos")
 public class DetallePedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_pedido", nullable = false)
-    private Pedido pedido;
+  @JsonIgnore
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id_pedido", nullable = false)
+  private Pedido pedido;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_plato", nullable = false)
-    private Plato plato;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_plato", nullable = false)
+  private Plato plato;
 
-    @Column(nullable = false)
-    private Integer cantidad;
+  @Column(nullable = false)
+  private Integer cantidad;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precioUnitario;
+  @Column(nullable = false, precision = 10, scale = 2)
+  private BigDecimal precioUnitario;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal subtotal;
+  @Column(nullable = false, precision = 10, scale = 2)
+  private BigDecimal subtotal;
 
-    @Column(length = 255)
-    private String notasPreparacion;
+  @Column(length = 255)
+  private String notasPreparacion;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    @Builder.Default
-    private EstadoDetallePedido estado = EstadoDetallePedido.PENDIENTE;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 30)
+  @Builder.Default
+  private EstadoDetallePedido estado = EstadoDetallePedido.PENDIENTE;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
-    private OffsetDateTime createdAt;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
+  private OffsetDateTime createdAt;
 }

@@ -14,35 +14,35 @@ import lombok.NoArgsConstructor;
 
 public class MesaDTO {
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class Request {
-        @NotNull(message = "El número de mesa es obligatorio")
-        @Min(value = 1, message = "El número de mesa debe ser al menos 1")
-        private Integer numeroMesa;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Builder
+  public static class Request {
+    @NotNull(message = "El número de mesa es obligatorio")
+    @Min(value = 1, message = "El número de mesa debe ser al menos 1")
+    private Integer numeroMesa;
 
-        @NotNull(message = "La capacidad es obligatoria")
-        @Min(value = 1, message = "La capacidad debe ser de al menos 1 persona")
-        private Integer capacidad;
+    @NotNull(message = "La capacidad es obligatoria")
+    @Min(value = 1, message = "La capacidad debe ser de al menos 1 persona")
+    private Integer capacidad;
 
-        @Size(max = 100, message = "La ubicación no puede exceder 100 caracteres")
-        private String ubicacion;
+    @Size(max = 100, message = "La ubicación no puede exceder 100 caracteres")
+    private String ubicacion;
 
-        private EstadoMesa estado;
-    }
+    private EstadoMesa estado;
+  }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class Response {
-        private Long id;
-        private Integer numeroMesa;
-        private Integer capacidad;
-        private String ubicacion;
-        private EstadoMesa estado;
-        private OffsetDateTime createdAt;
-    }
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  @Builder
+  public static class Response {
+    private Long id;
+    private Integer numeroMesa;
+    private Integer capacidad;
+    private String ubicacion;
+    private EstadoMesa estado;
+    private OffsetDateTime createdAt;
+  }
 }

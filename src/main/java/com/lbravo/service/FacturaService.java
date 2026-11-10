@@ -138,16 +138,34 @@ public class FacturaService {
 
         Factura savedFactura = facturaRepository.save(factura);
 
-        // Marcar pedido como FACTURADO y liberar mesa
+        // Marcar pedido como FACTURADO y liberar mesa si aplica
         pedido.setEstado(EstadoPedido.FACTURADO);
         pedido.setFechaCierre(OffsetDateTime.now());
         pedidoRepository.save(pedido);
 
-        Mesa mesa = pedido.getMesa();
-        mesa.setEstado(EstadoMesa.LIBRE);
-        mesaRepository.save(mesa);
+        if (pedido.getMesa() != null) {
+            Mesa mesa = pedido.getMesa();
+            mesa.setEstado(EstadoMesa.LIBRE);
+            mesaRepository.save(mesa);
+        }
 
         return mapToDto(savedFactura);
+    }
+
+    public Page<FacturaDTO.Response> getMisFacturas(Pageable pageable) {
+        String authLogin = null;
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            authLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+        }
+        if (authLogin == null || authLogin.equals("anonymousUser")) {
+            throw new BadRequestException("No hay una sesión de cliente activa");
+        }
+
+        final String finalLogin = authLogin;
+        Cliente cliente = clienteRepository.findByEmailOrIdentificacion(authLogin)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con: " + finalLogin));
+
+        return facturaRepository.findByClienteUuid(cliente.getUuid(), pageable).map(this::mapToDto);
     }
 
     @Transactional

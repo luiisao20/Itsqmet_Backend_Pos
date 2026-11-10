@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import lombok.AllArgsConstructor;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public ClienteDTO.Response mapToDto(Cliente c) {
         return ClienteDTO.Response.builder()
@@ -31,6 +33,7 @@ public class ClienteService {
                 .direccion(c.getDireccion())
                 .telefono(c.getTelefono())
                 .email(c.getEmail())
+                .activo(c.getActivo())
                 .createdAt(c.getCreatedAt())
                 .build();
     }
@@ -77,6 +80,8 @@ public class ClienteService {
                 .direccion(req.getDireccion() != null ? req.getDireccion().trim() : null)
                 .telefono(req.getTelefono() != null ? req.getTelefono().trim() : null)
                 .email(req.getEmail() != null ? req.getEmail().trim().toLowerCase() : null)
+                .password(req.getPassword() != null && !req.getPassword().isBlank() ? passwordEncoder.encode(req.getPassword()) : null)
+                .activo(req.getActivo() != null ? req.getActivo() : true)
                 .build();
 
         return mapToDto(clienteRepository.save(cliente));
@@ -98,6 +103,12 @@ public class ClienteService {
         cliente.setDireccion(req.getDireccion() != null ? req.getDireccion().trim() : null);
         cliente.setTelefono(req.getTelefono() != null ? req.getTelefono().trim() : null);
         cliente.setEmail(req.getEmail() != null ? req.getEmail().trim().toLowerCase() : null);
+        if (req.getPassword() != null && !req.getPassword().isBlank()) {
+            cliente.setPassword(passwordEncoder.encode(req.getPassword()));
+        }
+        if (req.getActivo() != null) {
+            cliente.setActivo(req.getActivo());
+        }
 
         return mapToDto(clienteRepository.save(cliente));
     }
