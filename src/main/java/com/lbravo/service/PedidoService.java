@@ -16,16 +16,20 @@ import com.lbravo.dto.DetallePedidoDTO;
 import com.lbravo.dto.PedidoDTO;
 import com.lbravo.entity.Cliente;
 import com.lbravo.entity.DetallePedido;
+import com.lbravo.entity.Insumo;
 import com.lbravo.entity.Mesa;
 import com.lbravo.entity.Pedido;
 import com.lbravo.entity.Plato;
+import com.lbravo.entity.Receta;
 import com.lbravo.entity.Usuario;
 import com.lbravo.exception.BadRequestException;
 import com.lbravo.exception.ResourceNotFoundException;
 import com.lbravo.repository.ClienteRepository;
+import com.lbravo.repository.InsumoRepository;
 import com.lbravo.repository.MesaRepository;
 import com.lbravo.repository.PedidoRepository;
 import com.lbravo.repository.PlatoRepository;
+import com.lbravo.repository.RecetaRepository;
 import com.lbravo.repository.UsuarioRepository;
 import com.lbravo.types.EstadoDetallePedido;
 import com.lbravo.types.EstadoMesa;
@@ -46,6 +50,8 @@ public class PedidoService {
     private final PlatoRepository platoRepository;
     private final DetallePedidoService detallePedidoService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final InsumoRepository insumoRepository;
+    private final RecetaRepository recetaRepository;
 
     public PedidoDTO.Response mapToDto(Pedido p) {
         List<DetallePedidoDTO.Response> detallesDto = p.getDetalles() != null
@@ -253,6 +259,28 @@ public class PedidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con id: " + id));
 
         pedido.setEstado(nuevoEstado);
+
+        // Descuento automático de stock de insumos por receta al iniciar preparación
+        if (nuevoEstado == EstadoPedido.EN_PREPARACION && pedido.getDetalles() != null) {
+            for (DetallePedido det : pedido.getDetalles()) {
+                if (det.getPlato() != null) {
+                    List<Receta> recetas = recetaRepository.findByPlatoId(det.getPlato().getId());
+                    for (Receta r : recetas) {
+                        Insumo insumo = r.getInsumo();
+                        if (insumo != null && insumo.getStockActual() != null) {
+                            BigDecimal cantRequerida = r.getCantidadRequerida().multiply(BigDecimal.valueOf(det.getCantidad()));
+                            BigDecimal nuevoStock = insumo.getStockActual().subtract(cantRequerida);
+                            if (nuevoStock.compareTo(BigDecimal.ZERO) < 0) {
+                                nuevoStock = BigDecimal.ZERO;
+                            }
+                            insumo.setStockActual(nuevoStock);
+                            insumoRepository.save(insumo);
+                        }
+                    }
+                }
+            }
+        }
+
         if (nuevoEstado == EstadoPedido.SERVIDO || nuevoEstado == EstadoPedido.FACTURADO || nuevoEstado == EstadoPedido.ANULADO) {
             if (nuevoEstado == EstadoPedido.FACTURADO || nuevoEstado == EstadoPedido.ANULADO) {
                 pedido.setFechaCierre(OffsetDateTime.now());

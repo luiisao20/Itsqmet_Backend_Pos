@@ -48,6 +48,10 @@ public class Distribuidor {
   @Column(length = 100)
   private String categoriaProveedor;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean esProveedorLocal = false;
+
   @CreationTimestamp
   @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
   private OffsetDateTime createdAt;

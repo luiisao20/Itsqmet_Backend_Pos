@@ -29,6 +29,7 @@ public class DistribuidorService {
                 .email(d.getEmail())
                 .direccion(d.getDireccion())
                 .categoriaProveedor(d.getCategoriaProveedor())
+                .esProveedorLocal(d.getEsProveedorLocal())
                 .createdAt(d.getCreatedAt())
                 .build();
     }
@@ -62,6 +63,7 @@ public class DistribuidorService {
                 .email(req.getEmail() != null ? req.getEmail().trim().toLowerCase() : null)
                 .direccion(req.getDireccion())
                 .categoriaProveedor(req.getCategoriaProveedor())
+                .esProveedorLocal(req.getEsProveedorLocal() != null ? req.getEsProveedorLocal() : false)
                 .build();
 
         return mapToDto(distribuidorRepository.save(distribuidor));
@@ -84,6 +86,9 @@ public class DistribuidorService {
         distribuidor.setEmail(req.getEmail() != null ? req.getEmail().trim().toLowerCase() : null);
         distribuidor.setDireccion(req.getDireccion());
         distribuidor.setCategoriaProveedor(req.getCategoriaProveedor());
+        if (req.getEsProveedorLocal() != null) {
+            distribuidor.setEsProveedorLocal(req.getEsProveedorLocal());
+        }
 
         return mapToDto(distribuidorRepository.save(distribuidor));
     }

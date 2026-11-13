@@ -1,6 +1,7 @@
 package com.lbravo.repository;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +31,12 @@ public interface CompraInsumoRepository extends JpaRepository<CompraInsumo, Long
             @Param("idDistribuidor") Long idDistribuidor,
             @Param("estado") EstadoCompra estado,
             Pageable pageable);
+
+    @Query("SELECT c.distribuidor.id, c.distribuidor.razonSocial, c.distribuidor.esProveedorLocal, "
+            + "COALESCE(SUM(c.totalCompra), 0), COUNT(c) "
+            + "FROM CompraInsumo c "
+            + "WHERE c.fechaCompra BETWEEN :desde AND :hasta "
+            + "GROUP BY c.distribuidor.id, c.distribuidor.razonSocial, c.distribuidor.esProveedorLocal "
+            + "ORDER BY SUM(c.totalCompra) DESC")
+    List<Object[]> findGastosPorProveedor(@Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta);
 }

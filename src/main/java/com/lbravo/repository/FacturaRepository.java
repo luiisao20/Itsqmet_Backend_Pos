@@ -1,5 +1,6 @@
 package com.lbravo.repository;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
@@ -39,4 +40,13 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
             @Param("desde") OffsetDateTime desde,
             @Param("hasta") OffsetDateTime hasta,
             Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(f.total), 0) FROM Factura f WHERE f.estado = 'EMITIDA' AND f.fechaEmision BETWEEN :desde AND :hasta")
+    BigDecimal sumTotalFacturado(@Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta);
+
+    @Query("SELECT COALESCE(SUM(f.propina), 0) FROM Factura f WHERE f.estado = 'EMITIDA' AND f.fechaEmision BETWEEN :desde AND :hasta")
+    BigDecimal sumPropinas(@Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta);
+
+    @Query("SELECT COUNT(f) FROM Factura f WHERE f.estado = 'EMITIDA' AND f.fechaEmision BETWEEN :desde AND :hasta")
+    long countFacturadas(@Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta);
 }

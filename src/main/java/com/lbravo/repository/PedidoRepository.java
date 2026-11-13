@@ -1,6 +1,7 @@
 package com.lbravo.repository;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,4 +46,14 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             @Param("desde") OffsetDateTime desde,
             @Param("hasta") OffsetDateTime hasta,
             Pageable pageable);
+
+    @Query("SELECT COUNT(p) FROM Pedido p WHERE p.estado = 'FACTURADO' AND p.tipo = :tipo AND COALESCE(p.fechaCierre, p.fechaApertura) BETWEEN :desde AND :hasta")
+    long countByTipoAndFechaBetween(@Param("tipo") TipoPedido tipo, @Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta);
+
+    @Query("SELECT dp.plato.id, dp.plato.nombre, SUM(dp.cantidad), SUM(dp.subtotal) "
+            + "FROM DetallePedido dp "
+            + "WHERE dp.pedido.estado = 'FACTURADO' AND COALESCE(dp.pedido.fechaCierre, dp.pedido.fechaApertura) BETWEEN :desde AND :hasta "
+            + "GROUP BY dp.plato.id, dp.plato.nombre "
+            + "ORDER BY SUM(dp.cantidad) DESC")
+    List<Object[]> findPlatosPopulares(@Param("desde") OffsetDateTime desde, @Param("hasta") OffsetDateTime hasta, Pageable pageable);
 }

@@ -39,6 +39,8 @@ public class DistribuidorDTO {
 
         @Size(max = 100, message = "La categoría de proveedor no puede exceder 100 caracteres")
         private String categoriaProveedor;
+
+        private Boolean esProveedorLocal;
     }
 
     @Data
@@ -54,6 +56,7 @@ public class DistribuidorDTO {
         private String email;
         private String direccion;
         private String categoriaProveedor;
+        private Boolean esProveedorLocal;
         private OffsetDateTime createdAt;
     }
 }
