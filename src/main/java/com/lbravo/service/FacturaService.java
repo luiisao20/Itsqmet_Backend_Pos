@@ -3,6 +3,7 @@ package com.lbravo.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lbravo.dto.DetallePedidoDTO;
 import com.lbravo.dto.FacturaDTO;
 import com.lbravo.entity.Cliente;
 import com.lbravo.entity.DetallePedido;
@@ -41,6 +43,28 @@ public class FacturaService {
     private final MesaRepository mesaRepository;
 
     public FacturaDTO.Response mapToDto(Factura f) {
+        List<DetallePedidoDTO.Response> detalles = f.getPedido() != null && f.getPedido().getDetalles() != null
+                ? f.getPedido().getDetalles().stream().map(d -> DetallePedidoDTO.Response.builder()
+                        .id(d.getId())
+                        .idPedido(f.getPedido().getId())
+                        .idPlato(d.getPlato() != null ? d.getPlato().getId() : null)
+                        .nombrePlato(d.getPlato() != null ? d.getPlato().getNombre() : "Platillo")
+                        .cantidad(d.getCantidad())
+                        .precioUnitario(d.getPrecioUnitario())
+                        .subtotal(d.getSubtotal())
+                        .notasPreparacion(d.getNotasPreparacion())
+                        .estado(d.getEstado())
+                        .build()).toList()
+                : List.of();
+
+        String tipoPedido = f.getPedido() != null && f.getPedido().getTipo() != null
+                ? f.getPedido().getTipo().name()
+                : null;
+
+        Integer numeroMesa = f.getPedido() != null && f.getPedido().getMesa() != null
+                ? f.getPedido().getMesa().getNumeroMesa()
+                : null;
+
         return FacturaDTO.Response.builder()
                 .id(f.getId())
                 .idPedido(f.getPedido().getId())
@@ -57,6 +81,9 @@ public class FacturaService {
                 .propina(f.getPropina())
                 .total(f.getTotal())
                 .estado(f.getEstado())
+                .tipoPedido(tipoPedido)
+                .numeroMesa(numeroMesa)
+                .detalles(detalles)
                 .createdAt(f.getCreatedAt())
                 .build();
     }

@@ -2,6 +2,7 @@ package com.lbravo.dto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import com.lbravo.types.EstadoFactura;
 
@@ -55,6 +56,9 @@ public class FacturaDTO {
         private BigDecimal propina;
         private BigDecimal total;
         private EstadoFactura estado;
+        private String tipoPedido;
+        private Integer numeroMesa;
+        private List<DetallePedidoDTO.Response> detalles;
         private OffsetDateTime createdAt;
     }
 }

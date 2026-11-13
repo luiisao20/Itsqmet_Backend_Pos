@@ -61,6 +61,7 @@ public class CompraInsumoService {
                 .idDistribuidor(c.getDistribuidor().getId())
                 .razonSocialDistribuidor(c.getDistribuidor().getRazonSocial())
                 .rucDistribuidor(c.getDistribuidor().getRuc())
+                .esProveedorLocalDistribuidor(c.getDistribuidor() != null && Boolean.TRUE.equals(c.getDistribuidor().getEsProveedorLocal()))
                 .idUsuario(c.getUsuario().getUuid())
                 .nombreUsuario(c.getUsuario().getNombre() + " " + c.getUsuario().getApellido())
                 .numeroFacturaProveedor(c.getNumeroFacturaProveedor())

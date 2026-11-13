@@ -46,6 +46,7 @@ public class CompraInsumoDTO {
         private Long idDistribuidor;
         private String razonSocialDistribuidor;
         private String rucDistribuidor;
+        private Boolean esProveedorLocalDistribuidor;
         private String idUsuario;
         private String nombreUsuario;
         private String numeroFacturaProveedor;
