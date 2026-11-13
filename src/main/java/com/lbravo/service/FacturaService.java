@@ -3,10 +3,12 @@ package com.lbravo.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ import com.lbravo.repository.UsuarioRepository;
 import com.lbravo.types.EstadoFactura;
 import com.lbravo.types.EstadoMesa;
 import com.lbravo.types.EstadoPedido;
+
+import jakarta.persistence.criteria.Predicate;
 
 import lombok.AllArgsConstructor;
 
@@ -100,8 +104,38 @@ public class FacturaService {
 
     public Page<FacturaDTO.Response> search(String secuencial, String clienteFiltro,
             EstadoFactura estado, OffsetDateTime desde, OffsetDateTime hasta, Pageable pageable) {
-        return facturaRepository.searchFacturas(secuencial, clienteFiltro, estado, desde, hasta, pageable)
-                .map(this::mapToDto);
+
+        Specification<Factura> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (secuencial != null && !secuencial.trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("numeroSecuencial")), "%" + secuencial.trim().toLowerCase() + "%"));
+            }
+
+            if (clienteFiltro != null && !clienteFiltro.trim().isEmpty()) {
+                String filter = "%" + clienteFiltro.trim().toLowerCase() + "%";
+                Predicate idLike = cb.like(root.get("cliente").get("identificacion"), "%" + clienteFiltro.trim() + "%");
+                Predicate razonLike = cb.like(cb.lower(root.get("cliente").get("razonSocial")), filter);
+                predicates.add(cb.or(idLike, razonLike));
+            }
+
+            if (estado != null) {
+                predicates.add(cb.equal(root.get("estado"), estado));
+            }
+
+            if (desde != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("fechaEmision"), desde));
+            }
+
+            if (hasta != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("fechaEmision"), hasta));
+            }
+
+            query.orderBy(cb.desc(root.get("fechaEmision")));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return facturaRepository.findAll(spec, pageable).map(this::mapToDto);
     }
 
     @Transactional

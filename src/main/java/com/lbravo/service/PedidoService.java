@@ -7,10 +7,13 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.criteria.Predicate;
 
 import com.lbravo.dto.DetallePedidoDTO;
 import com.lbravo.dto.PedidoDTO;
@@ -92,8 +95,37 @@ public class PedidoService {
 
     public Page<PedidoDTO.Response> search(EstadoPedido estado, TipoPedido tipo, Long idMesa,
             String usuarioUuid, String clienteUuid, OffsetDateTime desde, OffsetDateTime hasta, Pageable pageable) {
-        return pedidoRepository.searchPedidos(estado, tipo, idMesa, usuarioUuid, clienteUuid, desde, hasta, pageable)
-                .map(this::mapToDto);
+
+        Specification<Pedido> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (estado != null) {
+                predicates.add(cb.equal(root.get("estado"), estado));
+            }
+            if (tipo != null) {
+                predicates.add(cb.equal(root.get("tipo"), tipo));
+            }
+            if (idMesa != null) {
+                predicates.add(cb.equal(root.get("mesa").get("id"), idMesa));
+            }
+            if (usuarioUuid != null && !usuarioUuid.trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("usuario").get("uuid"), usuarioUuid.trim()));
+            }
+            if (clienteUuid != null && !clienteUuid.trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("cliente").get("uuid"), clienteUuid.trim()));
+            }
+            if (desde != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("fechaApertura"), desde));
+            }
+            if (hasta != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("fechaApertura"), hasta));
+            }
+
+            query.orderBy(cb.desc(root.get("fechaApertura")));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return pedidoRepository.findAll(spec, pageable).map(this::mapToDto);
     }
 
     @Transactional
