@@ -48,9 +48,13 @@ public class Distribuidor {
   @Column(length = 100)
   private String categoriaProveedor;
 
-  @Column(nullable = false)
+  @org.hibernate.annotations.ColumnDefault("false")
   @Builder.Default
   private Boolean esProveedorLocal = false;
+
+  public Boolean getEsProveedorLocal() {
+    return esProveedorLocal != null ? esProveedorLocal : false;
+  }
 
   @CreationTimestamp
   @Column(nullable = false, updatable = false, columnDefinition = "timestamptz")
