@@ -75,6 +75,8 @@ public class PedidoService {
                 .tipo(p.getTipo())
                 .observaciones(p.getObservaciones())
                 .detalles(detallesDto)
+                .idPaqueteSorpresa(p.getPaqueteSorpresa() != null ? p.getPaqueteSorpresa().getId() : null)
+                .tituloPaqueteSorpresa(p.getPaqueteSorpresa() != null ? p.getPaqueteSorpresa().getTitulo() : null)
                 .createdAt(p.getCreatedAt())
                 .build();
     }

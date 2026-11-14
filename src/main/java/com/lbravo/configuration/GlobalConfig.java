@@ -80,9 +80,12 @@ public class GlobalConfig {
             // Endpoints del Cliente
             .requestMatchers("/pedidos/cliente", "/pedidos/mis-pedidos").hasRole("CLIENTE")
             .requestMatchers("/facturas/mis-facturas").hasRole("CLIENTE")
+            .requestMatchers("/paquetes-sorpresa/*/rescatar").hasRole("CLIENTE")
+            .requestMatchers(HttpMethod.GET, "/paquetes-sorpresa/disponibles").permitAll()
+            .requestMatchers("/paquetes-sorpresa/gestion", "/paquetes-sorpresa/**").hasAnyRole("ADMIN", "COCINA", "MESERO")
 
-            // Catálogo (Lectura para ADMIN, MESERO, COCINA, CLIENTE)
-            .requestMatchers(HttpMethod.GET, "/platos/**", "/categorias-plato/**").hasAnyRole("ADMIN", "MESERO", "COCINA", "CLIENTE")
+            // Catálogo (Lectura pública para visitantes, clientes y personal)
+            .requestMatchers(HttpMethod.GET, "/platos/**", "/categorias-plato/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/insumos/**", "/recetas/**").hasAnyRole("ADMIN", "MESERO", "COCINA")
             .requestMatchers(HttpMethod.POST, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**").hasRole("ADMIN")
             .requestMatchers(HttpMethod.PUT, "/platos/**", "/categorias-plato/**", "/insumos/**", "/recetas/**").hasRole("ADMIN")

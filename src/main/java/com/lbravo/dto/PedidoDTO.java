@@ -64,6 +64,8 @@ public class PedidoDTO {
         private TipoPedido tipo;
         private String observaciones;
         private List<DetallePedidoDTO.Response> detalles;
+        private Long idPaqueteSorpresa;
+        private String tituloPaqueteSorpresa;
         private OffsetDateTime createdAt;
     }
 }

@@ -618,7 +618,66 @@ ON CONFLICT (id) DO UPDATE SET
     referencia_transaccion = EXCLUDED.referencia_transaccion;
 
 -- ----------------------------------------------------------------------------
--- 13. REAJUSTE DE SECUENCIAS IDENTITY
+-- 13. PAQUETES SORPRESA - RESCATE DE COMIDA (ODS 12: PRODUCCIÓN Y CONSUMO RESPONSABLES)
+-- ----------------------------------------------------------------------------
+INSERT INTO paquetes_sorpresa (
+    id, titulo, descripcion, precio_estimado_original, precio_rescate,
+    cantidad_total, cantidad_disponible, fecha_disponible,
+    hora_inicio_visibilidad, hora_fin_recogida, estado, url_imagen, created_at
+)
+VALUES
+    (
+        1,
+        'Pack Sorpresa Almuerzo Ejecutivo (ODS 12)',
+        'Rescata porciones preparadas del día: seco de pollo o churrasco con arroz, menestra y ensalada fresca.',
+        9.50,
+        3.50,
+        4,
+        4,
+        CURRENT_DATE,
+        '14:30:00',
+        '16:00:00',
+        'ACTIVO',
+        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+        NOW() - INTERVAL '2 hours'
+    ),
+    (
+        2,
+        'Pack Dulce & Café Repostería',
+        'Porciones de tarta casera de manzana, cheesecake o muffins del día más bebida caliente.',
+        8.00,
+        2.75,
+        5,
+        5,
+        CURRENT_DATE,
+        '18:00:00',
+        '21:30:00',
+        'ACTIVO',
+        'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500',
+        NOW() - INTERVAL '1 hour'
+    ),
+    (
+        3,
+        'Pack Sorpresa Nocturno Cierre de Servicio',
+        'Variedad de especialidades de la cena: pizza artesanal, pastas o lomo saltado recién preparado.',
+        12.00,
+        4.50,
+        6,
+        6,
+        CURRENT_DATE,
+        '20:30:00',
+        '22:30:00',
+        'ACTIVO',
+        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500',
+        NOW()
+    )
+ON CONFLICT (id) DO UPDATE SET
+    cantidad_disponible = EXCLUDED.cantidad_disponible,
+    fecha_disponible = EXCLUDED.fecha_disponible,
+    estado = EXCLUDED.estado;
+
+-- ----------------------------------------------------------------------------
+-- 14. REAJUSTE DE SECUENCIAS IDENTITY
 -- ----------------------------------------------------------------------------
 SELECT setval(pg_get_serial_sequence('mesas', 'id'),              COALESCE(MAX(id), 1)) FROM mesas;
 SELECT setval(pg_get_serial_sequence('categorias_platos', 'id'),  COALESCE(MAX(id), 1)) FROM categorias_platos;
@@ -633,5 +692,6 @@ SELECT setval(pg_get_serial_sequence('pedidos', 'id'),             COALESCE(MAX(
 SELECT setval(pg_get_serial_sequence('detalles_pedidos', 'id'),    COALESCE(MAX(id), 1)) FROM detalles_pedidos;
 SELECT setval(pg_get_serial_sequence('facturas', 'id'),            COALESCE(MAX(id), 1)) FROM facturas;
 SELECT setval(pg_get_serial_sequence('pagos', 'id'),               COALESCE(MAX(id), 1)) FROM pagos;
+SELECT setval(pg_get_serial_sequence('paquetes_sorpresa', 'id'),   COALESCE(MAX(id), 1)) FROM paquetes_sorpresa;
 
 COMMIT;

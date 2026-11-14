@@ -51,6 +51,10 @@ public class Pedido {
   @JoinColumn(name = "id_cliente")
   private Cliente cliente;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_paquete_sorpresa")
+  private PaqueteSorpresa paqueteSorpresa;
+
   @Column(nullable = false, columnDefinition = "timestamptz")
   private OffsetDateTime fechaApertura;
 
